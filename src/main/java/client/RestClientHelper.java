@@ -119,6 +119,26 @@ public class RestClientHelper {
         return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
     }
 
+
+    /**
+     * update by document Id
+     * @param index
+     * @param type
+     * @param id
+     * @param jsonData
+     * @return
+     * @throws Exception
+     */
+    public boolean update(String index, String type, String id, String jsonData) throws Exception {
+        String endPoint = String.format("/%s/%s/%s", index, type, id);
+        HttpEntity entity = new NStringEntity(jsonData, ContentType.APPLICATION_JSON);
+        Response response = client.performRequest("POST",
+                endPoint,
+                Collections.<String, String>emptyMap(),
+                entity);
+        return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+    }
+
     /**
      * Delete By document Id API
      * @param index
@@ -127,10 +147,15 @@ public class RestClientHelper {
      * @return
      * @throws IOException
      */
-    public boolean delete(String index, String type, String id) throws IOException {
+    public boolean delete(String index, String type, String id) throws Exception {
         String endPoint = String.format("/%s/%s/%s", index, type, id);
         Response response = client.performRequest("DELETE", endPoint);
         return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+    }
+
+    public Response checkClusterStatus() throws Exception {
+        Response response = client.performRequest("GET", "/", Collections.singletonMap("pretty", "true"));
+        return response;
     }
 
     /**

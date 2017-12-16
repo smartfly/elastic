@@ -39,6 +39,14 @@ public class RestClientHelperTest {
     }
 
     @Test
+    public void update() throws Exception {
+        RestClientHelper helper = new RestClientHelper();
+        String jsonStr = "{\"spicy\":\"false\"}";
+        boolean isSuccess = helper.update("food", "dish", "AWBaVTZ14gVOZQCksS1D", jsonStr);
+        Assert.assertEquals(isSuccess, true);
+    }
+
+    @Test
     public void createIndexBybulk() throws Exception {
         RestClientHelper helper = new RestClientHelper();
 
@@ -56,6 +64,11 @@ public class RestClientHelperTest {
         Assert.assertEquals(isSuccess, true);
     }
 
-
+    @Test
+    public void checkClusterStatus() throws Exception {
+        RestClientHelper helper = new RestClientHelper();
+        Response response = helper.checkClusterStatus();
+        System.out.println(EntityUtils.toString(response.getEntity()));
+    }
 
 }

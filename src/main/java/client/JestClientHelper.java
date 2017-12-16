@@ -25,7 +25,7 @@ public class JestClientHelper {
         JestClientFactory factory = new JestClientFactory();
         factory.setHttpClientConfig(
                 new HttpClientConfig
-                        .Builder("http://10.9.192.182:9200")
+                        .Builder("http://10.9.192.*:9200")
                         .multiThreaded(true)
                         .build());
         client = factory.getObject();
