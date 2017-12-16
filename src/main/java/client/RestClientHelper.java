@@ -2,12 +2,16 @@ package client;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.sniff.Sniffer;
 
+import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,13 +26,18 @@ public class RestClientHelper {
 
     static RestClient client;
 
+    static Sniffer sniffer;
+
     private static final String SEPARATOR = "/";
+
+    private static final String LINEFEED = "\n";
 
     static {
        client = RestClient.builder(
-               new HttpHost("10.9.192.182", 9200, "http"),
-               new HttpHost("10.9.197.165", 9200, "http")
+               new HttpHost("10.9.192.*", 9200, "http"),
+               new HttpHost("10.9.197.*", 9200, "http")
        ).build();
+       sniffer = Sniffer.builder(client).build();
     }
 
     /**
@@ -62,17 +71,81 @@ public class RestClientHelper {
      * @param index
      * @param type
      * @param id
-     * @param entity
+     * @param jsonData
      * @return
      * @throws Exception
      */
-    public boolean put(String index, String type, String id, HttpEntity entity) throws Exception {
-        Response indexRepnse = client.performRequest(
+    public boolean createIndex(String index, String type, String id, String jsonData) throws Exception {
+
+        HttpEntity entity = new NStringEntity(jsonData,
+                ContentType.APPLICATION_JSON);
+
+        Response response = client.performRequest(
                 "PUT",
                 SEPARATOR + index + SEPARATOR + type + SEPARATOR + id,
                 Collections.<String, String>emptyMap(),
                 entity);
-        return (indexRepnse != null);
+        return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+    }
+
+    /**
+     * Bulk API
+     * @param index
+     * @param type
+     * @param bulkData
+     * @return
+     * @throws IOException
+     */
+    public boolean createIndexBybulk(String index, String type, List<String> bulkData) throws Exception {
+        String actionMetaData =
+                String.format("{ \"index\" : { \"_index\" : \"%s\", \"_type\" : \"%s\" } }%n", index, type);
+
+        StringBuilder bulkRequestBody = new StringBuilder();
+        for (String bulkItem : bulkData) {
+            bulkRequestBody.append(actionMetaData);
+            bulkRequestBody.append(bulkItem);
+            bulkRequestBody.append(LINEFEED);
+        }
+        HttpEntity entity = new NStringEntity(
+                bulkRequestBody.toString(),
+                ContentType.APPLICATION_JSON);
+
+        String endPoint = String.format("/%s/%s/_bulk", index, type);
+
+        Response response = client.performRequest("POST",
+                endPoint,
+                Collections.<String, String>emptyMap(),
+                entity);
+        return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+    }
+
+    /**
+     * Delete By document Id API
+     * @param index
+     * @param type
+     * @param id
+     * @return
+     * @throws IOException
+     */
+    public boolean delete(String index, String type, String id) throws IOException {
+        String endPoint = String.format("/%s/%s/%s", index, type, id);
+        Response response = client.performRequest("DELETE", endPoint);
+        return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+    }
+
+    /**
+     * Close elastic client API
+     * @return
+     */
+    public boolean close(){
+        try {
+            client.close();
+            sniffer.close();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 }

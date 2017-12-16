@@ -1,12 +1,12 @@
 package client;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.nio.entity.NStringEntity;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Response;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -33,10 +33,26 @@ public class RestClientHelperTest {
     @Test
     public void put() throws Exception {
         RestClientHelper helper = new RestClientHelper();
-        HttpEntity entity = new NStringEntity(
-                "{\"food\":\"KFC\",\"spicy\":true,\"price\":10}",
-                ContentType.APPLICATION_JSON);
-        boolean isSuccess = helper.put("food", "dish", "1", entity);
+        String jsonStr = "{\"food\":\"KFC\",\"spicy\":true,\"price\":10}";
+        boolean isSuccess = helper.createIndex("food", "dish", "1", jsonStr);
+        Assert.assertEquals(isSuccess, true);
+    }
+
+    @Test
+    public void createIndexBybulk() throws Exception {
+        RestClientHelper helper = new RestClientHelper();
+
+        List<String> bulkData = new ArrayList<String>();
+        bulkData.add("{\"food\":\"Yellow Chicken Rice\",\"spicy\":true,\"favorite\":{\"location\":\"Beijing\",\"price\":20}}");
+        bulkData.add("{\"food\":\"Pumpkin Pie\",\"tags\":[\"pumpkin\",\"sugar\"],\"favorite\":{\"location\":\"Beijing\",\"price\":20}}");
+        boolean isSuccess = helper.createIndexBybulk("food", "dish", bulkData);
+        Assert.assertEquals(isSuccess, true);
+    }
+
+    @Test
+    public void delete() throws Exception{
+        RestClientHelper helper = new RestClientHelper();
+        boolean isSuccess = helper.delete("food", "dish", "1");
         Assert.assertEquals(isSuccess, true);
     }
 
