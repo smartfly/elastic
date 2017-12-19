@@ -158,19 +158,4 @@ public class RestClientHelper {
         return response;
     }
 
-    /**
-     * Close elastic client API
-     * @return
-     */
-    public boolean close(){
-        try {
-            client.close();
-            sniffer.close();
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
 }
